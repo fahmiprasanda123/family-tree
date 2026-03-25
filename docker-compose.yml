@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: silsilah_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: silsilah_keluarga
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  backend:
+    build: 
+      context: ./backend
+    container_name: silsilah_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/silsilah_keluarga?sslmode=disable
+      - JWT_SECRET=your-super-secret-jwt-key
+      - PORT=8080
+      - ALLOWED_ORIGINS=http://localhost:3000
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+  frontend:
+    build: 
+      context: ./frontend
+    container_name: silsilah_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  pgdata:

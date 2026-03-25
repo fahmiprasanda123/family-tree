@@ -1,0 +1,8 @@
+# Silsilah Keluarga — Railway backend deployment
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "./silsilah-keluarga"
+healthcheckPath = "/api/health"
+restartPolicyType = "on_failure"
