@@ -5,8 +5,9 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-# Set the API URL to be injected during build, pointing to the port exposed by docker
-ENV VITE_API_URL=http://localhost:8080/api
+# Set the API URL to be injected during build
+ARG VITE_API_URL=http://localhost:8080/api
+ENV VITE_API_URL=$VITE_API_URL
 
 RUN npm run build
 
