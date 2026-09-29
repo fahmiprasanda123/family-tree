@@ -21,8 +21,9 @@ services:
     environment:
       - DATABASE_URL=postgres://postgres:password@db:5432/silsilah_keluarga?sslmode=disable
       - JWT_SECRET=your-super-secret-jwt-key
+      - DEFAULT_ADMIN_PASSWORD=admin123
       - PORT=8080
-      - ALLOWED_ORIGINS=http://localhost:3000,http://family.fahmiprasanda.com
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:80,http://localhost,http://family.fahmiprasanda.com
     depends_on:
       - db
     ports:
@@ -34,13 +35,13 @@ services:
     build: 
       context: ./frontend
       args:
-        - VITE_API_URL=http://family.fahmiprasanda.com:8080/api
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8080/api}
     container_name: silsilah_frontend
     restart: always
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "3000:80"
 
 volumes:
   pgdata:
