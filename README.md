@@ -8,6 +8,7 @@ Aplikasi web modern, interaktif, dan responsif untuk mencatat, mengelola, serta 
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=flat&logo=postgresql)](https://www.postgresql.org)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)](https://www.docker.com)
 [![Saweria](https://img.shields.io/badge/Support-Saweria-FFA500?style=flat&logo=kofi)](https://saweria.co/itsamilitarysecret)
+[![BuyMeACoffee](https://img.shields.io/badge/Support-Buy%20Me%20a%20Coffee-FFDD00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/itsamilitarysecret)
 
 ---
 
@@ -15,7 +16,8 @@ Aplikasi web modern, interaktif, dan responsif untuk mencatat, mengelola, serta 
 
 Jika Anda merasa aplikasi ini bermanfaat atau ingin mendukung keberlanjutan pengembangan fitur-fitur baru, Anda dapat memberikan apresiasi dan donasi melalui:
 
-👉 **[Saweria: saweria.co/itsamilitarysecret](https://saweria.co/itsamilitarysecret)**
+- 👉 **[Saweria: saweria.co/itsamilitarysecret](https://saweria.co/itsamilitarysecret)**
+- 👉 **[Buy Me a Coffee: buymeacoffee.com/itsamilitarysecret](https://buymeacoffee.com/itsamilitarysecret)**
 
 Dukungan Anda sangat berarti bagi kelanjutan dan penyempurnaan proyek open-source ini! ❤️
 
@@ -224,8 +226,9 @@ silsilah-keluarga/
 
 Aplikasi ini dikembangkan untuk mempermudah keluarga Indonesia dalam mendokumentasikan asal-usul, cerita, dan garis keturunan agar tidak lekang oleh waktu.
 
-Dukung pengembang melalui Saweria:
-👉 **[https://saweria.co/itsamilitarysecret](https://saweria.co/itsamilitarysecret)**
+Dukung pengembang melalui:
+- 👉 **Saweria**: [https://saweria.co/itsamilitarysecret](https://saweria.co/itsamilitarysecret)
+- 👉 **Buy Me a Coffee**: [https://buymeacoffee.com/itsamilitarysecret](https://buymeacoffee.com/itsamilitarysecret)
 
 ---
 
