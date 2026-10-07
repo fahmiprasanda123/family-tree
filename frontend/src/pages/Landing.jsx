@@ -1,114 +1,196 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
+import { TreeIcon, UsersIcon, BookOpenIcon, ShieldIcon } from '../components/Icons';
+import Avatar from '../components/Avatar';
 
 export default function Landing() {
   const { user } = useAuthStore();
 
   return (
-    <div className="landing">
-      {/* Hero */}
-      <header className="landing-nav">
-        <div className="landing-nav-brand">
-          <span>🌳</span>
-          <strong>Silsilah Keluarga</strong>
+    <div className="landing-page">
+      {/* Top Bar */}
+      <header className="landing-header">
+        <div className="navbar-brand">
+          <Link to="/" aria-label="Beranda Silsilah Keluarga">
+            <span className="brand-icon-wrapper">
+              <TreeIcon size={20} />
+            </span>
+            <span>Silsilah Keluarga</span>
+          </Link>
         </div>
-        <div className="landing-nav-links">
-          <Link to="/tree">Lihat Pohon</Link>
+        <div className="navbar-actions">
+          <Link to="/tree" className="btn btn-ghost btn-sm">
+            Bagan Silsilah
+          </Link>
           {user ? (
-            <Link to="/dashboard" className="btn btn-primary">Dashboard</Link>
+            <Link to="/dashboard" className="btn btn-primary btn-sm">
+              Dashboard Anggota
+            </Link>
           ) : (
-            <Link to="/login" className="btn btn-primary">Masuk</Link>
+            <Link to="/login" className="btn btn-primary btn-sm">
+              Masuk Akun
+            </Link>
           )}
         </div>
       </header>
 
-      <section className="hero">
+      {/* Hero Section */}
+      <section className="hero-section">
         <div className="hero-content">
-          <div className="hero-badge">✨ Hubungkan keluarga besar Anda</div>
+          <div className="hero-category">
+            <TreeIcon size={16} />
+            <span>Dokumentasi Garis Keturunan</span>
+          </div>
+
           <h1 className="hero-title">
-            Temukan & Abadikan<br />
-            <span className="gradient-text">Silsilah Keluarga</span><br />
-            Anda Bersama
+            Dokumentasikan & Rawat<br />
+            <strong>Silsilah Keluarga</strong><br />
+            Lintas Generasi
           </h1>
-          <p className="hero-desc">
-            Platform kolaboratif untuk menyusun pohon keluarga bersama-sama. 
-            Setiap anggota bisa menambahkan profil, foto, dan cerita mereka sendiri.
+
+          <p className="hero-description">
+            Wadah terpercaya bagi keluarga besar untuk merangkai bagan leluhur,
+            mencatat riwayat hidup, serta mewariskan memori berharga kepada anak cucu.
           </p>
-          <div className="hero-cta">
-            <Link to="/login" className="btn btn-primary btn-lg">
-              Masuk ke Akun
+
+          <div className="hero-actions">
+            <Link to="/tree" className="btn btn-primary btn-lg">
+              Jelajahi Bagan Silsilah
             </Link>
-            <Link to="/tree" className="btn btn-ghost btn-lg">
-              Lihat Contoh Pohon →
+            {user ? (
+              <Link to="/dashboard" className="btn btn-secondary btn-lg">
+                Buka Data Anggota
+              </Link>
+            ) : (
+              <Link to="/login" className="btn btn-secondary btn-lg">
+                Masuk ke Akun
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Hero Visual: Clean Archival Tree Mockup */}
+        <div className="hero-visual-card" aria-label="Pratinjau struktur bagan keluarga">
+          <div className="visual-card-header">
+            <span className="visual-card-title">Arsip Garis Keturunan</span>
+            <span className="visual-card-tag">3 Generasi</span>
+          </div>
+
+          <div className="mock-tree">
+            {/* Generasi 1 */}
+            <div className="mock-row">
+              <div className="mock-node">
+                <Avatar name="Raden Kartosuwiryo" gender="male" size="sm" />
+                <span>Kakek Buyut</span>
+              </div>
+              <div className="mock-node">
+                <Avatar name="Siti Aminah" gender="female" size="sm" />
+                <span>Nenek Buyut</span>
+              </div>
+            </div>
+
+            <div className="mock-branch"></div>
+
+            {/* Generasi 2 */}
+            <div className="mock-row">
+              <div className="mock-node">
+                <Avatar name="Ahmad Dahlan" gender="male" size="sm" />
+                <span>Ayah</span>
+              </div>
+              <div className="mock-node">
+                <Avatar name="Nurhayati" gender="female" size="sm" />
+                <span>Ibu</span>
+              </div>
+            </div>
+
+            <div className="mock-branch"></div>
+
+            {/* Generasi 3 */}
+            <div className="mock-row">
+              <div className="mock-node current-user">
+                <Avatar name="Fahmi Prasanda" gender="male" size="sm" />
+                <span>Anda (Pencatat)</span>
+              </div>
+              <div className="mock-node">
+                <Avatar name="Aisyah Putri" gender="female" size="sm" />
+                <span>Saudari</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Narrative Pillars / Value Props */}
+      <section className="features-section">
+        <div className="features-container">
+          <div className="section-header">
+            <h2>Nilai Penting Merawat Asal-Usul</h2>
+            <p>
+              Mengenal siapa pendahulu kita mempererat tali persaudaraan dan
+              memastikan kisah keluarga tetap lestari.
+            </p>
+          </div>
+
+          <div className="narrative-grid">
+            <article className="narrative-card">
+              <div className="card-icon-bubble">
+                <UsersIcon size={22} />
+              </div>
+              <h3>Pencatatan Kolaboratif</h3>
+              <p>
+                Setiap anggota keluarga yang terdaftar dapat melengkapi profil,
+                foto masa muda, dan memverifikasi tali persaudaraan secara bersama.
+              </p>
+            </article>
+
+            <article className="narrative-card">
+              <div className="card-icon-bubble">
+                <BookOpenIcon size={22} />
+              </div>
+              <h3>Riwayat Hidup Utuh</h3>
+              <p>
+                Dokumentasikan tanggal penting, tempat kelahiran, jejak pengabdian,
+                hingga cerita kenangan keluarga dalam satu wadah yang tersusun rapi.
+              </p>
+            </article>
+
+            <article className="narrative-card">
+              <div className="card-icon-bubble">
+                <ShieldIcon size={22} />
+              </div>
+              <h3>Privasi Terjaga Penuh</h3>
+              <p>
+                Data silsilah dan foto kenangan tersimpan secara aman dan terproteksi,
+                hanya dapat diakses oleh anggota keluarga yang diberikan izin.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* Callout Section */}
+      <section className="cta-callout">
+        <h2>Mulai Bangun Pohon Silsilah Anda Hari Ini</h2>
+        <p>
+          Catat nama para orang tua, sambungkan saudara yang jauh, dan
+          abadikan warisan keluarga untuk generasi penerus.
+        </p>
+        <div className="hero-actions">
+          <Link to="/tree" className="btn btn-primary btn-lg">
+            Buka Bagan Silsilah
+          </Link>
+          {!user && (
+            <Link to="/login" className="btn btn-secondary btn-lg">
+              Masuk Akun Pengelola
             </Link>
-          </div>
-        </div>
-        <div className="hero-visual">
-          <div className="hero-tree">
-            <div className="tree-node grandparent">👴 Kakek</div>
-            <div className="tree-line-h"></div>
-            <div className="tree-node grandparent">👵 Nenek</div>
-            <div className="tree-connector"></div>
-            <div className="tree-row">
-              <div className="tree-node parent">👨 Ayah</div>
-              <div className="tree-node parent">👩 Ibu</div>
-            </div>
-            <div className="tree-connector"></div>
-            <div className="tree-row">
-              <div className="tree-node child active">👦 Anda</div>
-              <div className="tree-node child">👧 Saudari</div>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
-      {/* Features */}
-      <section className="features">
-        <h2>Kenapa Silsilah Keluarga?</h2>
-        <div className="features-grid">
-          <div className="feature-card">
-            <div className="feature-icon">👨‍👩‍👧‍👦</div>
-            <h3>Kolaboratif</h3>
-            <p>Setiap anggota keluarga yang ditambahkan bisa masuk dan mengisi data sendiri</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">📸</div>
-            <h3>Upload Foto</h3>
-            <p>Tambahkan foto profil untuk setiap anggota keluarga</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">🌳</div>
-            <h3>Visualisasi Interaktif</h3>
-            <p>Lihat pohon keluarga dalam tampilan visual yang bisa di-zoom dan drag</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">🔒</div>
-            <h3>Aman & Privat</h3>
-            <p>Data keluarga Anda aman dengan sistem otentikasi JWT</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">📱</div>
-            <h3>Data Lengkap</h3>
-            <p>Simpan nama, tanggal lahir, tempat lahir, pekerjaan, dan bio</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">☁️</div>
-            <h3>Cloud Storage</h3>
-            <p>Foto disimpan di Cloudinary — aman dan bisa diakses dari mana saja</p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="cta-section">
-        <h2>Ingin mendokumentasikan silsilah keluarga Anda?</h2>
-        <p>Silakan masuk ke akun Anda untuk mulai membangun pohon keluarga</p>
-        <Link to="/login" className="btn btn-primary btn-lg">Masuk Sekarang</Link>
-      </section>
-
+      {/* Footer */}
       <footer className="landing-footer">
-        <p>🌳 Silsilah Keluarga — Abadikan warisan keluarga Anda</p>
+        <p>Silsilah Keluarga (c) 2026. Merawat ingatan, mempererat persaudaraan.</p>
       </footer>
     </div>
   );

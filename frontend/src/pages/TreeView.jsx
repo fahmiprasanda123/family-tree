@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   ReactFlow,
-  MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -20,8 +19,10 @@ import dagre from '@dagrejs/dagre';
 import { toPng } from 'html-to-image';
 import { relationshipsAPI, membersAPI } from '../api/client';
 import useAuthStore from '../store/authStore';
+import Avatar from '../components/Avatar';
+import { TreeIcon, DownloadIcon, LinkIcon, PlusIcon } from '../components/Icons';
 
-// ── Node dimensions (must match rendered CSS) ──────────────────────────────
+// Node dimensions
 const NODE_W = 240;
 const NODE_H = 120;
 
@@ -29,32 +30,27 @@ const NODE_H = 120;
 function MemberNode({ data }) {
   return (
     <div className="member-node-container">
-      <Handle type="target" position={Position.Top}    id="t-top"   className="custom-handle" />
-      <Handle type="target" position={Position.Left}   id="t-left"  className="custom-handle" />
-      <Handle type="source" position={Position.Left}   id="s-left"  className="custom-handle" />
-      <Handle type="target" position={Position.Right}  id="t-right" className="custom-handle" />
-      <Handle type="source" position={Position.Right}  id="s-right" className="custom-handle" />
+      <Handle type="target" position={Position.Top}    id="t-top"    className="custom-handle" />
+      <Handle type="target" position={Position.Left}   id="t-left"   className="custom-handle" />
+      <Handle type="source" position={Position.Left}   id="s-left"   className="custom-handle" />
+      <Handle type="target" position={Position.Right}  id="t-right"  className="custom-handle" />
+      <Handle type="source" position={Position.Right}  id="s-right"  className="custom-handle" />
       <Handle type="source" position={Position.Bottom} id="s-bottom" className="custom-handle" />
 
       <Link to={`/members/${data.id}`} style={{ textDecoration: 'none' }}>
-        <div className={`premium-tree-node ${data.gender} ${!data.is_alive ? 'deceased' : ''}`}>
-          <div className="premium-node-glass shadow-lg"></div>
-          <div className="premium-node-content">
-            <div className="premium-node-photo-wrapper">
-              {data.photo_url ? (
-                <img src={data.photo_url} alt={data.full_name} className="premium-node-img" />
-              ) : (
-                <div className="premium-node-avatar">
-                  {data.gender === 'female' ? '👩' : '👨'}
-                </div>
-              )}
-            </div>
-            <div className="premium-node-info">
-              <p className="premium-node-name">{data.full_name}</p>
-              {data.nickname && <p className="premium-node-nick">"{data.nickname}"</p>}
-              {data.occupation && <p className="premium-node-occ">{data.occupation}</p>}
-              {!data.is_alive && <span className="premium-node-status">Alm.</span>}
-            </div>
+        <div className={`clean-tree-node ${data.gender} ${!data.is_alive ? 'deceased' : ''}`}>
+          <div className="node-photo-col">
+            {data.photo_url ? (
+              <Avatar src={data.photo_url} name={data.full_name} gender={data.gender} size="md" />
+            ) : (
+              <Avatar name={data.full_name} gender={data.gender} size="md" />
+            )}
+          </div>
+          <div className="node-info-col">
+            <p className="node-name">{data.full_name}</p>
+            {data.nickname && <p className="node-sub">Panggilan: {data.nickname}</p>}
+            {data.occupation && <p className="node-role-tag">{data.occupation}</p>}
+            {!data.is_alive && <span className="node-deceased-badge">Alm.</span>}
           </div>
         </div>
       </Link>
@@ -65,7 +61,7 @@ function MemberNode({ data }) {
 function UnionNode() {
   return (
     <div style={{ width: 1, height: 1, position: 'relative' }}>
-      <Handle type="source" position={Position.Bottom} id="s-bottom" style={{ background: '#4f46e5', width: 8, height: 8 }} />
+      <Handle type="source" position={Position.Bottom} id="s-bottom" style={{ background: '#1b4332', width: 6, height: 6 }} />
       <Handle type="target" position={Position.Top}    id="t-top"    style={{ opacity: 0 }} />
       <Handle type="target" position={Position.Left}   id="t-left"   style={{ opacity: 0 }} />
       <Handle type="target" position={Position.Right}  id="t-right"  style={{ opacity: 0 }} />
@@ -75,11 +71,6 @@ function UnionNode() {
 
 const nodeTypes = { member: MemberNode, union: UnionNode };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DAGRE-BASED AUTO-LAYOUT (Macro-Node Approach)
-// We group spouses into a single "Macro-Node" so dagre places marriage couples
-// side-by-side perfectly, rather than stacking them vertically.
-// ─────────────────────────────────────────────────────────────────────────────
 function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges = []) {
   if (!allNodes.length) return allNodes;
 
@@ -105,7 +96,6 @@ function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges =
   unionNodes.forEach(u => {
     memberToUnion[u.data.spouse1] = u.id;
     memberToUnion[u.data.spouse2] = u.id;
-    // Add couple macro-node to Dagre
     g.setNode(u.id, { width: COUPLE_W, height: NODE_H });
   });
 
@@ -119,15 +109,13 @@ function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges =
   // 3. Add edges (only parent -> child)
   visualEdges.forEach(e => {
     const isSpouseEdge = e.label === 'spouse' || e.isSpouse;
-    if (isSpouseEdge) return; // skip horizontal spouse edges in dagre
+    if (isSpouseEdge) return;
 
-    // e.source is either a single Member, or a Union
     let s = e.source;
     if (memberNodes.find(n => n.id === e.source) && memberToUnion[e.source]) {
       s = memberToUnion[e.source];
     }
     
-    // e.target is ALWAYS a Member
     let t = memberToUnion[e.target] || e.target;
 
     if (s !== t) {
@@ -137,10 +125,7 @@ function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges =
 
   dagre.layout(g);
 
-  // Read back positions and unpack macro-nodes
   const posMap = {};
-  
-  // Need parent map to determine left/right ordering of spouses
   const parentsOf = {};
   memberNodes.forEach(m => { parentsOf[m.id] = []; });
   originalEdges.forEach(e => {
@@ -153,17 +138,15 @@ function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges =
     const pos = g.node(u.id);
     if (!pos) return;
     
-    // pos is the dagre center of the macro-node
     const startX = pos.x - COUPLE_W / 2;
     const startY = pos.y - NODE_H / 2;
     
     let s1 = u.data.spouse1;
     let s2 = u.data.spouse2;
 
-    // To prevent crossed lines, we sort spouses horizontally based on their incoming parent branches
     function getParentAvgX(memberId) {
        const parents = parentsOf[memberId] || [];
-       if (parents.length === 0) return pos.x; // default to center if no parents
+       if (parents.length === 0) return pos.x;
        let sum = 0, count = 0;
        parents.forEach(pId => {
           const pUnion = memberToUnion[pId];
@@ -181,17 +164,13 @@ function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges =
     const avgX2 = getParentAvgX(s2);
 
     if (avgX1 > avgX2) {
-       // s1's parents are further right, so swap them!
        const temp = s1;
        s1 = s2;
        s2 = temp;
     }
 
-    // Spouse 1 (or the swapped spouse that belongs on the left):
     posMap[s1] = { x: startX, y: startY };
-    // Spouse 2 (belongs on the right):
     posMap[s2] = { x: startX + NODE_W + SPOUSE_GAP, y: startY };
-    // Union connection point: exactly between spouses near the bottom
     posMap[u.id] = { x: pos.x - 4, y: startY + NODE_H - 30 }; 
   });
 
@@ -199,13 +178,11 @@ function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges =
     if (!memberToUnion[m.id]) {
       const pos = g.node(m.id);
       if (pos) {
-        // Dagre center to Top-Left
         posMap[m.id] = { x: pos.x - NODE_W / 2, y: pos.y - NODE_H / 2 };
       }
     }
   });
 
-  // 5. Center around X=0
   const allXs = Object.values(posMap).map(p => p.x);
   if (allXs.length > 0) {
     const minX = Math.min(...allXs);
@@ -214,13 +191,12 @@ function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges =
     Object.keys(posMap).forEach(k => { posMap[k].x -= offset; });
   }
 
-  // Assign positions back to nodes array
   const positionedNodes = allNodes.map(n => ({
     ...n,
     position: posMap[n.id] || { x: 0, y: 0 }
   }));
 
-  // Style edges (strict orthogonal lines)
+  // Clean, non-neon branch lines
   visualEdges.forEach(e => {
     const isUnionEdge = e.id?.startsWith('edge_union_') || e.source?.startsWith('union_');
     const isSpouseEdge = e.label === 'spouse' || e.isSpouse;
@@ -229,8 +205,8 @@ function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges =
       e.type = 'step';
       e.sourceHandle = 's-bottom';
       e.targetHandle = 't-top';
-      e.style = { stroke: '#4f46e5', strokeWidth: 3 };
-      e.markerEnd = { type: MarkerType.ArrowClosed, color: '#4f46e5' };
+      e.style = { stroke: '#1b4332', strokeWidth: 2 };
+      e.markerEnd = { type: MarkerType.ArrowClosed, color: '#1b4332' };
     } else if (isSpouseEdge) {
       e.type = 'straight';
       const ps = posMap[e.source], pt = posMap[e.target];
@@ -238,15 +214,14 @@ function autoLayout(allNodes, visualEdges, spouseEdgesList = [], originalEdges =
         e.sourceHandle = ps.x < pt.x ? 's-right' : 's-left';
         e.targetHandle = ps.x < pt.x ? 't-left' : 't-right';
       }
-      e.style = { stroke: '#2dd4bf', strokeWidth: 3 };
+      e.style = { stroke: '#9a3412', strokeWidth: 2 };
       e.markerEnd = null;
     } else {
-      // Single parent edge
       e.type = 'step';
       e.sourceHandle = 's-bottom';
       e.targetHandle = 't-top';
-      e.style = { stroke: '#4f46e5', strokeWidth: 2 };
-      e.markerEnd = { type: MarkerType.ArrowClosed, color: '#4f46e5' };
+      e.style = { stroke: '#57534e', strokeWidth: 2 };
+      e.markerEnd = { type: MarkerType.ArrowClosed, color: '#57534e' };
     }
   });
 
@@ -269,9 +244,10 @@ function DownloadButton() {
     );
 
     const viewportElem = document.querySelector('.react-flow__viewport');
+    if (!viewportElem) return;
     
     toPng(viewportElem, {
-      backgroundColor: '#0f0f1a',
+      backgroundColor: '#fcfbf9',
       width: imageWidth,
       height: imageHeight,
       style: {
@@ -289,8 +265,9 @@ function DownloadButton() {
 
   return (
     <Panel position="top-right">
-      <button className="btn btn-primary btn-sm" onClick={onClick} style={{ background: '#ec4899', borderColor: '#ec4899', boxShadow: '0 4px 14px rgba(236, 72, 153, 0.4)' }}>
-        📸 Simpan PDF / Gambar
+      <button className="btn btn-secondary btn-sm" onClick={onClick}>
+        <DownloadIcon size={16} />
+        <span>Unduh Bagan</span>
       </button>
     </Panel>
   );
@@ -298,19 +275,16 @@ function DownloadButton() {
 
 export default function TreeView() {
   const { user } = useAuthStore();
-  const isAdmin = user?.role === 'admin';
-
-
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Relation form
+  // Relation form state
   const [members, setMembers] = useState([]);
   const [showRelForm, setShowRelForm] = useState(false);
-  const [relFormType, setRelFormType] = useState('parent_child'); // 'parent_child' or 'spouse'
+  const [relFormType, setRelFormType] = useState('parent_child');
   const [relForm, setRelForm] = useState({ parent_id: '', child_id: '', relationship_type: 'biological' });
   const [relSaving, setRelSaving] = useState(false);
 
@@ -351,8 +325,8 @@ export default function TreeView() {
                source: uId,
                target: childId,
                type: 'step',
-               markerEnd: { type: MarkerType.ArrowClosed, color: '#4f46e5' },
-               style: { stroke: '#4f46e5', strokeWidth: 2 }
+               markerEnd: { type: MarkerType.ArrowClosed, color: '#1b4332' },
+               style: { stroke: '#1b4332', strokeWidth: 2 }
             });
          });
       });
@@ -370,7 +344,7 @@ export default function TreeView() {
 
     } catch (err) {
       console.error(err);
-      setError('Gagal memuat pohon keluarga');
+      setError('Gagal memuat pohon silsilah keluarga');
       setLoading(false);
     }
   }, []);
@@ -400,115 +374,141 @@ export default function TreeView() {
       setRelForm({ parent_id: '', child_id: '', relationship_type: 'biological' });
       await loadTree();
     } catch (err) {
-      alert(err.response?.data?.error || 'Gagal menambah relasi');
+      alert(err.response?.data?.error || 'Gagal menambahkan relasi keluarga');
     } finally {
       setRelSaving(false);
     }
   };
 
-  if (loading) return (
-    <div className="page loading-state tree-loading">
-      <div className="spinner large"></div>
-      <p>Memuat pohon keluarga...</p>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="page loading-container">
+        <div className="spinner large"></div>
+        <p>Menyusun bagan silsilah keluarga...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="tree-page">
       <div className="tree-toolbar">
         <div className="tree-toolbar-left">
-          <h2>🌳 Pohon Keluarga</h2>
-          <span className="tree-count">{nodes.length} anggota</span>
+          <div className="tree-toolbar-title">
+            <TreeIcon size={20} />
+            <h2>Bagan Silsilah Keluarga</h2>
+          </div>
+          <span className="tree-count-badge">
+            {nodes.filter(n => n.type !== 'union').length} Anggota
+          </span>
         </div>
+
         <div className="tree-toolbar-right">
           {user && (
-            <button className="btn btn-primary btn-sm" onClick={() => setShowRelForm(!showRelForm)}>
-              🔗 {showRelForm ? 'Batal' : 'Tambah Relasi'}
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowRelForm(!showRelForm)}
+            >
+              <LinkIcon size={16} />
+              <span>{showRelForm ? 'Tutup Formulir' : 'Hubungkan Relasi'}</span>
             </button>
           )}
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Daftar Anggota</Link>
+          {user && (
+            <Link to="/members/new" className="btn btn-secondary btn-sm">
+              <PlusIcon size={16} />
+              <span>Tambah Anggota</span>
+            </Link>
+          )}
         </div>
       </div>
 
       {showRelForm && user && (
         <div className="rel-form-panel">
-          <h3>Tambah Relasi</h3>
-          
-          <div className="form-group">
-            <label>Jenis Relasi</label>
-            <div className="radio-group" style={{display: 'flex', gap: '15px', marginBottom: '15px'}}>
-              <label><input type="radio" checked={relFormType === 'parent_child'} onChange={() => setRelFormType('parent_child')} /> Orang Tua & Anak</label>
-              <label><input type="radio" checked={relFormType === 'spouse'} onChange={() => setRelFormType('spouse')} /> Suami & Istri</label>
+          <h3>Hubungkan Tali Hubungan Keluarga</h3>
+
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label>Bentuk Hubungan</label>
+            <div style={{ display: 'flex', gap: '20px', marginTop: '4px' }}>
+              <label className="checkbox-label">
+                <input
+                  type="radio"
+                  name="relType"
+                  checked={relFormType === 'parent_child'}
+                  onChange={() => setRelFormType('parent_child')}
+                />
+                <span>Orang Tua & Anak</span>
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="radio"
+                  name="relType"
+                  checked={relFormType === 'spouse'}
+                  onChange={() => setRelFormType('spouse')}
+                />
+                <span>Suami & Istri</span>
+              </label>
             </div>
           </div>
 
-          <form onSubmit={handleAddRelation} className="rel-form">
-            <div className="form-group">
-              <label>{relFormType === 'spouse' ? 'Pasangan 1' : 'Orang Tua'}</label>
-              <select value={relForm.parent_id} onChange={e => setRelForm(p => ({ ...p, parent_id: e.target.value }))} required>
-                <option value="">-- Pilih --</option>
-                {members.map(m => <option key={m.id} value={m.id}>{m.full_name}</option>)}
+          <form onSubmit={handleAddRelation} className="rel-form-row">
+            <div className="form-group" style={{ flex: 1, minWidth: '220px' }}>
+              <label>{relFormType === 'spouse' ? 'Pasangan 1' : 'Pihak Orang Tua'}</label>
+              <select
+                value={relForm.parent_id}
+                onChange={e => setRelForm(p => ({ ...p, parent_id: e.target.value }))}
+                required
+              >
+                <option value="">Pilih anggota keluarga...</option>
+                {members.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.full_name} {m.nickname ? `(${m.nickname})` : ''}
+                  </option>
+                ))}
               </select>
             </div>
-            <div className="form-group">
-              <label>{relFormType === 'spouse' ? 'Pasangan 2' : 'Anak'}</label>
-              <select value={relForm.child_id} onChange={e => setRelForm(p => ({ ...p, child_id: e.target.value }))} required>
-                <option value="">-- Pilih --</option>
-                {members.map(m => <option key={m.id} value={m.id}>{m.full_name}</option>)}
+
+            <div className="form-group" style={{ flex: 1, minWidth: '220px' }}>
+              <label>{relFormType === 'spouse' ? 'Pasangan 2' : 'Pihak Anak'}</label>
+              <select
+                value={relForm.child_id}
+                onChange={e => setRelForm(p => ({ ...p, child_id: e.target.value }))}
+                required
+              >
+                <option value="">Pilih anggota keluarga...</option>
+                {members
+                  .filter(m => m.id !== relForm.parent_id)
+                  .map(m => (
+                    <option key={m.id} value={m.id}>
+                      {m.full_name} {m.nickname ? `(${m.nickname})` : ''}
+                    </option>
+                  ))}
               </select>
             </div>
-            
-            {relFormType === 'parent_child' && (
-              <div className="form-group">
-                <label>Tipe Anak</label>
-                <select value={relForm.relationship_type} onChange={e => setRelForm(p => ({ ...p, relationship_type: e.target.value }))}>
-                  <option value="biological">Kandung</option>
-                  <option value="adopted">Adopsi</option>
-                </select>
-              </div>
-            )}
 
             <button type="submit" className="btn btn-primary" disabled={relSaving}>
-              {relSaving ? 'Menyimpan...' : 'Simpan Relasi'}
+              {relSaving ? 'Menyimpan...' : 'Simpan Hubungan'}
             </button>
           </form>
         </div>
       )}
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && <div className="alert alert-error" style={{ margin: '16px' }}>{error}</div>}
 
-      {nodes.length === 0 ? (
-        <div className="empty-tree">
-          <div className="empty-icon">🌱</div>
-          <h3>Pohon keluarga masih kosong</h3>
-          <p>Tambahkan anggota keluarga dan buat relasi untuk melihat pohon keluarga</p>
-          <div className="empty-tree-actions">
-            <Link to="/members/new" className="btn btn-primary">Tambah Anggota</Link>
-            <Link to="/dashboard" className="btn btn-ghost">Lihat Semua Anggota</Link>
-          </div>
-        </div>
-      ) : (
-        <div className="tree-canvas">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            nodeTypes={nodeTypes}
-            fitView
-            fitViewOptions={{ padding: 0.2 }}
-            minZoom={0.1}
-          >
-            <Controls />
-            <DownloadButton />
-            <MiniMap
-              nodeColor={(n) => n.data?.gender === 'female' ? '#ec4899' : '#6366f1'}
-              style={{ background: '#1e1e2e' }}
-            />
-            <Background variant="dots" gap={20} size={1} color="#ffffff20" />
-          </ReactFlow>
-        </div>
-      )}
+      <div className="tree-canvas">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
+          fitView
+          minZoom={0.2}
+          maxZoom={1.8}
+        >
+          <Background color="var(--border)" gap={24} size={1} />
+          <Controls />
+          <DownloadButton />
+        </ReactFlow>
+      </div>
     </div>
   );
 }

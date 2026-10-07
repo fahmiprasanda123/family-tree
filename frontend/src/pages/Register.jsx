@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../api/client';
 import useAuthStore from '../store/authStore';
+import { TreeIcon, ArrowLeftIcon } from '../components/Icons';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function Register() {
     e.preventDefault();
     setError('');
     if (form.password.length < 6) {
-      setError('Password minimal 6 karakter');
+      setError('Kata sandi minimal 6 karakter.');
       return;
     }
     setLoading(true);
@@ -24,32 +25,41 @@ export default function Register() {
       setAuth(user, token);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Pendaftaran gagal. Coba lagi.');
+      setError(err.response?.data?.error || 'Pendaftaran belum berhasil. Silakan coba kembali.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page-wrapper">
       <div className="auth-card">
-        <div className="auth-header">
-          <Link to="/" className="auth-back">← Kembali</Link>
-          <div className="auth-logo">🌳</div>
-          <h1>Buat Akun Baru</h1>
-          <p>Bergabung dengan keluarga besar Anda</p>
+        <div style={{ marginBottom: '16px' }}>
+          <Link to="/" className="btn btn-ghost btn-sm">
+            <ArrowLeftIcon size={16} />
+            <span>Beranda</span>
+          </Link>
+        </div>
+
+        <div className="auth-card-header">
+          <div className="auth-brand-mark">
+            <TreeIcon size={26} />
+          </div>
+          <h1>Buat Akun Keluarga</h1>
+          <p>Mulai mendata dan mengabadikan sejarah garis keturunan</p>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
 
-        <div className="info-box">
-          💡 <strong>Info:</strong> Pengguna pertama yang mendaftar akan otomatis menjadi Admin.
+        <div className="alert" style={{ backgroundColor: 'var(--primary-subtle)', color: 'var(--primary)', borderColor: 'var(--primary-light)' }}>
+          <span>Catatan: Pendaftar pertama dalam sistem akan otomatis menjadi Administrator.</span>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="form-group">
-            <label>Nama Lengkap</label>
+            <label htmlFor="name">Nama Lengkap</label>
             <input
+              id="name"
               type="text"
               placeholder="Nama lengkap Anda"
               value={form.name}
@@ -57,9 +67,11 @@ export default function Register() {
               required
             />
           </div>
+
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Alamat Email</label>
             <input
+              id="email"
               type="email"
               placeholder="nama@email.com"
               value={form.email}
@@ -67,23 +79,26 @@ export default function Register() {
               required
             />
           </div>
+
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Kata Sandi (Minimal 6 karakter)</label>
             <input
+              id="password"
               type="password"
-              placeholder="Minimal 6 karakter"
+              placeholder="••••••••"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
             />
           </div>
-          <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
-            {loading ? 'Mendaftar...' : 'Daftar Sekarang'}
+
+          <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: '8px' }}>
+            {loading ? 'Mendaftarkan Akun...' : 'Daftarkan Akun'}
           </button>
         </form>
 
-        <p className="auth-footer">
-          Sudah punya akun? <Link to="/login">Masuk di sini</Link>
+        <p style={{ textAlign: 'center', marginTop: '24px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+          Sudah memiliki akun? <Link to="/login">Masuk di sini</Link>
         </p>
       </div>
     </div>

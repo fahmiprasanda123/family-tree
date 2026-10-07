@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from './store/authStore';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
-
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import TreeView from './pages/TreeView';
 import MemberDetail from './pages/MemberDetail';
@@ -26,12 +26,16 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
         <Route path="/tree" element={<><Navbar /><TreeView /></>} />
         <Route path="/dashboard" element={<PrivateRoute><Navbar /><Dashboard /></PrivateRoute>} />
         <Route path="/members/:id" element={<><Navbar /><MemberDetail /></>} />
         <Route path="/members/new" element={<PrivateRoute><Navbar /><MemberForm /></PrivateRoute>} />
         <Route path="/members/:id/edit" element={<PrivateRoute><Navbar /><MemberForm mode="edit" /></PrivateRoute>} />
+
+        {/* Catch-all redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -2,10 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { membersAPI } from '../api/client';
 import useAuthStore from '../store/authStore';
+import Avatar from '../components/Avatar';
+import {
+  SearchIcon,
+  PlusIcon,
+  UsersIcon,
+  BriefcaseIcon,
+  CalendarIcon,
+  LocationIcon,
+  EditIcon,
+  TrashIcon,
+} from '../components/Icons';
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 }
 
 export default function Dashboard() {
@@ -22,21 +37,23 @@ export default function Dashboard() {
       const res = await membersAPI.list();
       setMembers(res.data.data || []);
     } catch {
-      setError('Gagal memuat data anggota');
+      setError('Gagal memuat data anggota keluarga. Silakan segarkan halaman.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { loadMembers(); }, []);
+  useEffect(() => {
+    loadMembers();
+  }, []);
 
   const handleDelete = async (id, name) => {
-    if (!confirm(`Hapus ${name}? Tindakan ini tidak bisa dibatalkan.`)) return;
+    if (!window.confirm(`Hapus data ${name}? Tindakan ini tidak dapat dibatalkan.`)) return;
     try {
       await membersAPI.delete(id);
       setMembers(prev => prev.filter(m => m.id !== id));
     } catch {
-      alert('Gagal menghapus anggota');
+      alert('Gagal menghapus data anggota');
     }
   };
 
@@ -46,67 +63,114 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="page dashboard">
+    <div className="page dashboard-page">
       <div className="page-header">
         <div>
-          <h1>Anggota Keluarga</h1>
-          <p>Total {members.length} anggota terdaftar</p>
+          <h1>Daftar Anggota Keluarga</h1>
+          <p>Tercatat {members.length} anggota keluarga dalam arsip silsilah</p>
         </div>
-        <Link to="/members/new" className="btn btn-primary">+ Tambah Anggota</Link>
+        <Link to="/members/new" className="btn btn-primary">
+          <PlusIcon size={18} />
+          <span>Tambah Anggota</span>
+        </Link>
       </div>
 
       <div className="search-bar">
+        <span className="search-icon-wrapper">
+          <SearchIcon size={18} />
+        </span>
         <input
           type="text"
-          placeholder="🔍 Cari anggota..."
+          className="search-input"
+          placeholder="Cari berdasarkan nama atau panggilan..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          aria-label="Cari nama anggota keluarga"
         />
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
 
       {loading ? (
-        <div className="loading-state">
+        <div className="loading-container">
           <div className="spinner"></div>
-          <p>Memuat data...</p>
+          <p>Memuat daftar anggota keluarga...</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">👨‍👩‍👧‍👦</div>
-          <h3>{search ? 'Tidak ada hasil' : 'Belum ada anggota'}</h3>
-          <p>{search ? 'Coba kata kunci lain' : 'Mulai dengan menambahkan anggota keluarga pertama'}</p>
-          {!search && <Link to="/members/new" className="btn btn-primary">Tambah Anggota Pertama</Link>}
+        <div className="empty-state-card">
+          <div className="empty-state-icon">
+            <UsersIcon size={28} />
+          </div>
+          <h3>{search ? 'Anggota Tidak Ditemukan' : 'Belum Ada Anggota Terdaftar'}</h3>
+          <p>
+            {search
+              ? `Tidak ditemukan anggota dengan kata kunci "${search}". Silakan periksa ejaan nama.`
+              : 'Mulai dokumentasi silsilah dengan mencatat data anggota keluarga generasi pertama (kakek/buyut).'}
+          </p>
+          {!search && (
+            <Link to="/members/new" className="btn btn-primary">
+              <PlusIcon size={18} />
+              <span>Tambah Anggota Pertama</span>
+            </Link>
+          )}
         </div>
       ) : (
         <div className="members-grid">
           {filtered.map((m) => (
-            <div key={m.id} className="member-card">
-              <div className="member-photo">
+            <article key={m.id} className="member-card">
+              <div className="member-card-photo">
                 {m.photo_url ? (
-                  <img src={m.photo_url} alt={m.full_name} />
+                  <img src={m.photo_url} alt={`Foto profil ${m.full_name}`} />
                 ) : (
-                  <div className="photo-placeholder">
-                    {m.gender === 'female' ? '👩' : '👨'}
+                  <Avatar name={m.full_name} gender={m.gender} size="xl" />
+                )}
+                {!m.is_alive && <span className="deceased-tag">Almarhum/ah</span>}
+              </div>
+
+              <div className="member-card-body">
+                <h2 className="member-card-name">{m.full_name}</h2>
+                {m.nickname && (
+                  <p className="member-card-nickname">Panggilan: {m.nickname}</p>
+                )}
+
+                {m.occupation && (
+                  <div className="meta-line">
+                    <BriefcaseIcon size={15} />
+                    <span>{m.occupation}</span>
                   </div>
                 )}
-                {!m.is_alive && <span className="deceased-badge">Alm.</span>}
-              </div>
-              <div className="member-info">
-                <h3>{m.full_name}</h3>
-                {m.nickname && <p className="nickname">"{m.nickname}"</p>}
-                {m.occupation && <p className="occupation">💼 {m.occupation}</p>}
-                {m.birth_date && <p className="birthdate">🎂 {formatDate(m.birth_date)}</p>}
-                {m.birth_place && <p className="birthplace">📍 {m.birth_place}</p>}
-              </div>
-              <div className="member-actions">
-                <Link to={`/members/${m.id}`} className="btn btn-sm btn-ghost">Lihat</Link>
-                <Link to={`/members/${m.id}/edit`} className="btn btn-sm btn-secondary">Edit</Link>
-                {isAdmin && (
-                  <button onClick={() => handleDelete(m.id, m.full_name)} className="btn btn-sm btn-danger">Hapus</button>
+                {m.birth_date && (
+                  <div className="meta-line">
+                    <CalendarIcon size={15} />
+                    <span>Lahir: {formatDate(m.birth_date)}</span>
+                  </div>
+                )}
+                {m.birth_place && (
+                  <div className="meta-line">
+                    <LocationIcon size={15} />
+                    <span>Asal: {m.birth_place}</span>
+                  </div>
                 )}
               </div>
-            </div>
+
+              <div className="member-card-actions">
+                <Link to={`/members/${m.id}`} className="btn btn-sm btn-ghost" style={{ flex: 1 }}>
+                  Lihat Profil
+                </Link>
+                <Link to={`/members/${m.id}/edit`} className="btn btn-sm btn-secondary" aria-label={`Ubah profil ${m.full_name}`}>
+                  <EditIcon size={15} />
+                </Link>
+                {isAdmin && (
+                  <button
+                    onClick={() => handleDelete(m.id, m.full_name)}
+                    className="btn btn-sm btn-danger"
+                    aria-label={`Hapus data ${m.full_name}`}
+                  >
+                    <TrashIcon size={15} />
+                  </button>
+                )}
+              </div>
+            </article>
           ))}
         </div>
       )}
